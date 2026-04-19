@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceAI — Intelligent Back-Office Automation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0B1F3A;
+  --blue: #1A56DB;
+  --teal: #0CA5A5;
+  --amber: #F59E0B;
+  --light: #F0F5FF;
+  --white: #FFFFFF;
+  --gray: #64748B;
+  --border: rgba(255,255,255,0.12);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--navy);
+  color:var(--white);
+  overflow-x:hidden;
+}
+
+/* ── Nav ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 4rem;
+  background:rgba(11,31,58,0.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+}
+.logo{
+  font-family:'DM Serif Display',serif;
+  font-size:1.5rem;color:var(--white);text-decoration:none;
+  display:flex;align-items:center;gap:.5rem;
+}
+.logo span{color:var(--teal)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:rgba(255,255,255,0.7);text-decoration:none;font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{
+  background:var(--blue);color:var(--white);
+  padding:.6rem 1.5rem;border-radius:8px;text-decoration:none;
+  font-weight:600;font-size:.9rem;transition:all .2s;
+}
+.nav-cta:hover{background:#1741B0;transform:translateY(-1px)}
+
+/* ── Hero ── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:8rem 2rem 4rem;
+  position:relative;overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%, rgba(26,86,219,0.25) 0%, transparent 70%),
+             radial-gradient(ellipse 50% 50% at 80% 80%, rgba(12,165,165,0.15) 0%, transparent 60%);
+  pointer-events:none;
+}
+.hero-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
+  background-size:50px 50px;
+  pointer-events:none;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:.5rem;
+  background:rgba(26,86,219,0.2);border:1px solid rgba(26,86,219,0.4);
+  padding:.4rem 1rem;border-radius:100px;
+  font-size:.8rem;font-weight:600;color:#7BB3FF;
+  margin-bottom:1.5rem;letter-spacing:.05em;text-transform:uppercase;
+}
+.badge::before{content:'●';color:var(--teal);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+h1{
+  font-family:'DM Serif Display',serif;
+  font-size:clamp(2.8rem,6vw,5rem);
+  line-height:1.1;
+  margin-bottom:1.5rem;
+  max-width:900px;
+}
+h1 em{color:var(--teal);font-style:italic}
+.hero-sub{
+  font-size:1.15rem;color:rgba(255,255,255,0.65);
+  max-width:580px;line-height:1.7;margin-bottom:2.5rem;
+}
+.hero-buttons{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+.btn-primary{
+  background:var(--blue);color:var(--white);
+  padding:.9rem 2rem;border-radius:10px;text-decoration:none;
+  font-weight:600;font-size:1rem;
+  transition:all .25s;display:inline-flex;align-items:center;gap:.5rem;
+  box-shadow:0 4px 20px rgba(26,86,219,0.4);
+}
+.btn-primary:hover{background:#1741B0;transform:translateY(-2px);box-shadow:0 8px 30px rgba(26,86,219,0.5)}
+.btn-outline{
+  border:1.5px solid rgba(255,255,255,0.3);color:var(--white);
+  padding:.9rem 2rem;border-radius:10px;text-decoration:none;
+  font-weight:600;font-size:1rem;transition:all .25s;
+  display:inline-flex;align-items:center;gap:.5rem;
+}
+.btn-outline:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.6)}
+
+/* ── Stats bar ── */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:2px;background:rgba(255,255,255,0.06);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+  margin-top:4rem;
+}
+.stat{
+  padding:2rem;text-align:center;
+  background:rgba(11,31,58,0.5);
+}
+.stat-num{
+  font-family:'DM Serif Display',serif;font-size:2.5rem;
+  color:var(--teal);
+}
+.stat-label{font-size:.85rem;color:rgba(255,255,255,0.55);margin-top:.3rem;font-weight:500}
+
+/* ── Sections ── */
+section{padding:6rem 4rem}
+.section-tag{
+  font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--teal);margin-bottom:.75rem;
+}
+.section-title{
+  font-family:'DM Serif Display',serif;font-size:clamp(1.8rem,3.5vw,2.8rem);
+  line-height:1.2;margin-bottom:1rem;max-width:700px;
+}
+.section-sub{color:rgba(255,255,255,0.6);font-size:1rem;max-width:600px;line-height:1.7}
+
+/* ── Problem section ── */
+.problem{
+  background:linear-gradient(135deg,rgba(255,100,50,0.06) 0%,transparent 60%);
+  border-top:1px solid var(--border);
+}
+.problem-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:start;margin-top:3rem;
+}
+.pain-points{list-style:none;display:flex;flex-direction:column;gap:1rem}
+.pain-point{
+  display:flex;align-items:flex-start;gap:1rem;
+  padding:1.25rem;border-radius:10px;
+  background:rgba(255,80,50,0.06);border:1px solid rgba(255,80,50,0.15);
+}
+.pain-icon{font-size:1.4rem;flex-shrink:0}
+.pain-text strong{display:block;margin-bottom:.25rem;font-weight:600}
+.pain-text p{font-size:.875rem;color:rgba(255,255,255,0.6);line-height:1.5}
+.problem-stats{display:flex;flex-direction:column;gap:1.5rem}
+.pstat{
+  padding:1.5rem;border-radius:12px;
+  background:rgba(255,255,255,0.03);border:1px solid var(--border);
+}
+.pstat-num{font-size:2.2rem;font-weight:700;color:var(--amber);font-family:'DM Serif Display',serif}
+.pstat-desc{color:rgba(255,255,255,0.6);font-size:.85rem;margin-top:.25rem}
+
+/* ── Solution section ── */
+.solution{background:rgba(255,255,255,0.02)}
+.solution-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem;
+}
+.sol-card{
+  padding:2rem;border-radius:16px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.sol-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(26,86,219,0.06),transparent);
+  opacity:0;transition:opacity .3s;
+}
+.sol-card:hover{border-color:rgba(26,86,219,0.4);transform:translateY(-4px)}
+.sol-card:hover::before{opacity:1}
+.sol-icon{
+  width:52px;height:52px;border-radius:12px;
+  background:rgba(26,86,219,0.15);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:1.25rem;
+}
+.sol-card h3{font-size:1.1rem;font-weight:600;margin-bottom:.6rem}
+.sol-card p{font-size:.875rem;color:rgba(255,255,255,0.6);line-height:1.6}
+
+/* ── Categories ── */
+.categories{border-top:1px solid var(--border)}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem}
+.cat-card{
+  padding:1.75rem;border-radius:14px;border:1px solid var(--border);
+  background:rgba(255,255,255,0.02);transition:all .25s;cursor:default;
+}
+.cat-card:hover{border-color:var(--teal);background:rgba(12,165,165,0.05)}
+.cat-icon{font-size:2rem;margin-bottom:1rem}
+.cat-name{font-weight:700;font-size:1rem;margin-bottom:.4rem}
+.cat-desc{font-size:.8rem;color:rgba(255,255,255,0.55);line-height:1.5}
+.cat-tag{
+  display:inline-block;margin-top:.75rem;
+  padding:.25rem .75rem;border-radius:100px;
+  background:rgba(26,86,219,0.2);color:#7BB3FF;font-size:.75rem;font-weight:600;
+}
+
+/* ── CTA ── */
+.cta-section{
+  text-align:center;
+  background:linear-gradient(135deg,rgba(26,86,219,0.15) 0%,rgba(12,165,165,0.1) 100%);
+  border-top:1px solid var(--border);border-bottom:1px solid var(--border);
+}
+.cta-section .section-title{margin:0 auto 1rem;max-width:600px}
+.cta-section .section-sub{margin:0 auto 2.5rem}
+.cta-buttons{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+/* ── Footer ── */
+footer{
+  padding:2rem 4rem;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  color:rgba(255,255,255,0.4);font-size:.85rem;
+}
+
+/* ── Animations ── */
+.fade-in{opacity:0;transform:translateY(24px);transition:all .7s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+  section{padding:4rem 1.5rem}
+  .problem-grid,.solution-grid,.cat-grid{grid-template-columns:1fr}
+  .stats-bar{grid-template-columns:1fr 1fr}
+  footer{flex-direction:column;gap:1rem;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Invoice<span>AI</span></a>
+  <ul class="nav-links">
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#solution">Solution</a></li>
+    <li><a href="#categories">Categories</a></li>
+    <li><a href="/dashboard">Dashboard</a></li>
+  </ul>
+  <a href="/erp" class="nav-cta">→ Open ERP</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="badge">AI-Powered · Back-Office Automation</div>
+  <h1>Finance Teams Deserve <em>Better</em> Than Manual Invoices</h1>
+  <p class="hero-sub">InvoiceAI extracts, validates, and processes vendor invoices at scale — cutting processing time from hours to seconds with enterprise-grade accuracy.</p>
+  <div class="hero-buttons">
+    <a href="/erp" class="btn-primary">⚡ Upload Invoices</a>
+    <a href="/dashboard" class="btn-outline">📊 View Dashboard</a>
+  </div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num">95%</div><div class="stat-label">Extraction Accuracy</div></div>
+  <div class="stat"><div class="stat-num">50x</div><div class="stat-label">Faster Processing</div></div>
+  <div class="stat"><div class="stat-num">8+</div><div class="stat-label">Validation Rules</div></div>
+  <div class="stat"><div class="stat-num">50</div><div class="stat-label">Invoices per Batch</div></div>
+</div>
+
+<!-- PROBLEM STATEMENT -->
+<section class="problem" id="problem">
+  <div class="section-tag">The Problem</div>
+  <div class="section-title">Back-Office Finance is Stuck in the Past</div>
+  <div class="section-sub">Finance teams spend an overwhelming portion of their workday manually processing invoices — a repetitive, error-prone process that delays payments and frustrates vendors.</div>
+
+  <div class="problem-grid fade-in">
+    <ul class="pain-points">
+      <li class="pain-point">
+        <span class="pain-icon">🕒</span>
+        <div class="pain-text"><strong>Time-Consuming Manual Entry</strong><p>Each invoice requires manual data entry into ERP systems, consuming 15–20 minutes per document with high error rates.</p></div>
+      </li>
+      <li class="pain-point">
+        <span class="pain-icon">❌</span>
+        <div class="pain-text"><strong>Error-Prone OCR Without Context</strong><p>Traditional OCR extracts text but cannot understand context — leading to wrong field mapping and failed validations.</p></div>
+      </li>
+      <li class="pain-point">
+        <span class="pain-icon">⚠️</span>
+        <div class="pain-text"><strong>Missing Validation Logic</strong><p>Duplicate invoices, incorrect GST rates, and amount discrepancies go undetected until payment stage — causing financial risk.</p></div>
+      </li>
+      <li class="pain-point">
+        <span class="pain-icon">📊</span>
+        <div class="pain-text"><strong>Zero Real-Time Visibility</strong><p>Finance officers lack real-time spend dashboards, making budget tracking and anomaly detection reactive rather than proactive.</p></div>
+      </li>
+    </ul>
+    <div class="problem-stats">
+      <div class="pstat fade-in"><div class="pstat-num">₹2.5L</div><div class="pstat-desc">Average annual cost of manual invoice processing per finance team member</div></div>
+      <div class="pstat fade-in"><div class="pstat-num">3.2%</div><div class="pstat-desc">Invoice error rate in manual processing — each error costs ₹1,200 avg. to fix</div></div>
+      <div class="pstat fade-in"><div class="pstat-num">15 days</div><div class="pstat-desc">Average invoice processing cycle time — causing vendor payment delays and relationship strain</div></div>
+      <div class="pstat fade-in"><div class="pstat-num">40%</div><div class="pstat-desc">Of finance team time spent on invoice-related tasks that AI can automate</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution" id="solution">
+  <div class="section-tag">Our Solution</div>
+  <div class="section-title">AI That Understands Invoices, Not Just OCR</div>
+  <div class="section-sub">InvoiceAI uses Claude's vision intelligence to contextually understand invoice documents, validate data against business rules, and route them to ERP — automatically.</div>
+
+  <div class="solution-grid">
+    <div class="sol-card fade-in">
+      <div class="sol-icon">🤖</div>
+      <h3>Intelligent Extraction Agent</h3>
+      <p>Vision AI reads PDFs and images, extracts structured fields with context awareness, and classifies invoices into 6 back-office categories with 95%+ accuracy.</p>
+    </div>
+    <div class="sol-card fade-in">
+      <div class="sol-icon">✅</div>
+      <h3>8-Layer Validation Engine</h3>
+      <p>Business rules validate required fields, date ranges, amount thresholds (>₹1L → audit), vendor uniqueness, GST rates, arithmetic accuracy, and more.</p>
+    </div>
+    <div class="sol-card fade-in">
+      <div class="sol-icon">🏗️</div>
+      <h3>ERP-Ready Interface</h3>
+      <p>Editable data grid for corrections, inline validation feedback, and one-click ERP submission. Finance teams stay in control while AI handles the heavy lifting.</p>
+    </div>
+    <div class="sol-card fade-in">
+      <div class="sol-icon">📈</div>
+      <h3>Finance Analytics Dashboard</h3>
+      <p>Real-time spend analytics by category, vendor, and month. Actionable insights with audit alerts, plus PDF and Excel exports for management reporting.</p>
+    </div>
+    <div class="sol-card fade-in">
+      <div class="sol-icon">💬</div>
+      <h3>FinBot Chat Assistant</h3>
+      <p>Ask natural language questions about invoices, payment status, GST compliance, or back-office processes. Scoped AI that stays on topic.</p>
+    </div>
+    <div class="sol-card fade-in">
+      <div class="sol-icon">🔒</div>
+      <h3>Compliance & Audit Trails</h3>
+      <p>Every extraction, validation, and edit is logged. Invoices exceeding ₹1 lakh are automatically flagged for audit with full history preserved.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="categories" id="categories">
+  <div class="section-tag">Invoice Categories</div>
+  <div class="section-title">Purpose-Built for Every Back-Office Department</div>
+  <div class="section-sub">Each category has specific extraction schemas and validation rules tailored to its unique invoice structure.</div>
+
+  <div class="cat-grid">
+    <div class="cat-card fade-in">
+      <div class="cat-icon">👥</div>
+      <div class="cat-name">HR Consulting</div>
+      <div class="cat-desc">Recruitment services, placement fees, consultancy hours, candidate billing with rate-per-hour extraction and GST verification.</div>
+      <span class="cat-tag">Staffing · Recruitment · HR</span>
+    </div>
+    <div class="cat-card fade-in">
+      <div class="cat-icon">💻</div>
+      <div class="cat-name">Software & Licenses</div>
+      <div class="cat-desc">SaaS subscriptions, software licenses, server hardware, Microsoft/Adobe products with license count and validity period tracking.</div>
+      <span class="cat-tag">IT · SaaS · Infrastructure</span>
+    </div>
+    <div class="cat-card fade-in">
+      <div class="cat-icon">🍱</div>
+      <div class="cat-name">Canteen & Food</div>
+      <div class="cat-desc">Employee meal services, catering invoices, tiffin providers with per-head cost calculation and meal type categorisation.</div>
+      <span class="cat-tag">Meals · Catering · Food</span>
+    </div>
+    <div class="cat-card fade-in">
+      <div class="cat-icon">🔧</div>
+      <div class="cat-name">Admin (Ad-Hoc Work)</div>
+      <div class="cat-desc">Maintenance, repairs, plumbing, electrical, furniture with labour vs material cost separation and work category tagging.</div>
+      <span class="cat-tag">Maintenance · Repairs · Civil</span>
+    </div>
+    <div class="cat-card fade-in">
+      <div class="cat-icon">🧹</div>
+      <div class="cat-name">Housekeeping</div>
+      <div class="cat-desc">Cleaning services, janitorial staff, sanitation with daily rate tracking, consumable costs, and service day verification.</div>
+      <span class="cat-tag">Cleaning · Sanitation · Hygiene</span>
+    </div>
+    <div class="cat-card fade-in">
+      <div class="cat-icon">🚗</div>
+      <div class="cat-name">Others (Transport)</div>
+      <div class="cat-desc">Cab services, courier, logistics — often unstructured handwritten bills — extracted with intelligent parsing for trip details and fares.</div>
+      <span class="cat-tag">Cab · Courier · Transport</span>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="section-tag">Get Started</div>
+  <div class="section-title">Start Processing Invoices in Minutes</div>
+  <div class="section-sub">Upload up to 50 invoices in one batch. AI extracts, validates, and prepares them for ERP submission — no configuration required.</div>
+  <div class="cta-buttons">
+    <a href="/erp" class="btn-primary">⚡ Upload Invoice Batch</a>
+    <a href="/dashboard" class="btn-outline">📊 Finance Dashboard</a>
+    <a href="/chat" class="btn-outline">💬 Ask FinBot</a>
+  </div>
+</section>
+
+<footer>
+  <div>© 2026 InvoiceAI — AI-Powered Back-Office Automation</div>
+  <div>Built with Claude Vision AI · Python Flask · Enterprise-Grade</div>
+</footer>
+
+<script>
+// Intersection Observer for fade-in animations
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if(e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

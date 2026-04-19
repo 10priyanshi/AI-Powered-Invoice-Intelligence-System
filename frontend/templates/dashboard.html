@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceAI — Finance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#06101E;--surface:#0C1829;--surface2:#112036;--border:#1C2E45;
+  --blue:#3B7BF5;--teal:#06B6D4;--green:#22D3A4;--red:#F3605B;
+  --amber:#FBBF24;--purple:#A78BFA;
+  --text:#E8F0FE;--sub:#7B9BC7;--mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* Header */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.9rem 2rem;background:var(--surface);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;
+}
+.logo{font-weight:800;font-size:1.2rem;color:#fff;text-decoration:none}
+.logo span{color:var(--teal)}
+.header-right{display:flex;gap:.75rem;align-items:center}
+.nav-link{
+  color:var(--sub);text-decoration:none;font-size:.85rem;font-weight:500;
+  padding:.4rem .9rem;border-radius:6px;transition:all .2s;
+}
+.nav-link:hover{color:var(--text);background:var(--surface2)}
+.export-btns{display:flex;gap:.5rem}
+.export-btn{
+  padding:.5rem 1rem;border-radius:7px;font-size:.8rem;font-weight:700;
+  cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:.4rem;
+}
+.btn-excel{background:rgba(34,197,94,0.15);color:#4ADE80;border:1px solid rgba(34,197,94,0.25)}
+.btn-excel:hover{background:rgba(34,197,94,0.25)}
+.btn-pdf{background:rgba(243,96,91,0.15);color:#F87171;border:1px solid rgba(243,96,91,0.25)}
+.btn-pdf:hover{background:rgba(243,96,91,0.25)}
+
+/* Main layout */
+.dashboard{padding:1.5rem 2rem;max-width:1600px;margin:0 auto}
+
+/* KPI Cards */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem;
+}
+.kpi-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:1.4rem;position:relative;overflow:hidden;
+  transition:transform .2s,border-color .2s;
+}
+.kpi-card:hover{transform:translateY(-2px);border-color:rgba(59,123,245,0.3)}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--accent,var(--blue));
+}
+.kpi-label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--sub);margin-bottom:.75rem}
+.kpi-value{font-size:2rem;font-weight:800;font-family:var(--mono);color:var(--text);line-height:1}
+.kpi-sub{font-size:.75rem;color:var(--sub);margin-top:.5rem}
+.kpi-badge{
+  position:absolute;top:1.25rem;right:1.25rem;
+  font-size:1.4rem;opacity:.7;
+}
+.kpi-card.danger{--accent:var(--red)}
+.kpi-card.success{--accent:var(--green)}
+.kpi-card.warn{--accent:var(--amber)}
+.kpi-card.info{--accent:var(--purple)}
+
+/* Insight Banner */
+.insight-banner{
+  background:linear-gradient(135deg,rgba(59,123,245,0.12),rgba(6,182,212,0.08));
+  border:1px solid rgba(59,123,245,0.2);border-radius:12px;
+  padding:1rem 1.5rem;margin-bottom:1.5rem;
+  display:flex;align-items:flex-start;gap:1rem;
+}
+.insight-icon{font-size:1.5rem;flex-shrink:0;margin-top:.1rem}
+.insight-text strong{display:block;margin-bottom:.25rem;font-weight:700}
+.insight-text p{font-size:.85rem;color:var(--sub);line-height:1.5}
+.insight-items{display:flex;flex-direction:column;gap:.3rem;margin-top:.5rem}
+.insight-item{
+  font-size:.8rem;background:rgba(59,123,245,0.1);
+  padding:.3rem .75rem;border-radius:5px;color:var(--text);
+}
+
+/* Charts layout */
+.charts-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;
+}
+.charts-grid-3{
+  display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem;margin-bottom:1rem;
+}
+.chart-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:1.25rem;
+}
+.chart-title{
+  font-size:.8rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.07em;color:var(--sub);margin-bottom:1rem;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.chart-container{position:relative;height:220px}
+
+/* Vendor table */
+.vendor-list{display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem}
+.vendor-row{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.6rem .75rem;border-radius:8px;
+  background:var(--surface2);
+}
+.v-rank{
+  width:22px;height:22px;border-radius:50%;
+  background:rgba(59,123,245,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;font-weight:700;color:var(--blue);flex-shrink:0;
+}
+.v-name{flex:1;font-size:.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v-bar-wrap{width:80px;background:var(--border);border-radius:2px;height:5px}
+.v-bar{height:5px;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--teal))}
+.v-amount{font-family:var(--mono);font-size:.75rem;color:var(--sub);min-width:70px;text-align:right}
+
+/* Status donut labels */
+.status-legend{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem;justify-content:center}
+.leg-item{display:flex;align-items:center;gap:.35rem;font-size:.75rem;color:var(--sub)}
+.leg-dot{width:8px;height:8px;border-radius:50%}
+
+/* Audit / Failures table */
+.data-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.data-table th{
+  text-align:left;padding:.5rem .75rem;
+  border-bottom:2px solid var(--border);color:var(--sub);
+  font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;
+}
+.data-table td{padding:.6rem .75rem;border-bottom:1px solid var(--border)}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:rgba(255,255,255,0.02)}
+.amt-cell{font-family:var(--mono);font-weight:600}
+.amt-high{color:var(--red)}
+.status-pill{
+  padding:.2rem .6rem;border-radius:4px;font-size:.7rem;font-weight:700;font-family:var(--mono);
+}
+.pill-ready{background:rgba(34,211,164,0.15);color:var(--green)}
+.pill-failed{background:rgba(243,96,91,0.15);color:var(--red)}
+.pill-review{background:rgba(251,191,36,0.15);color:var(--amber)}
+.pill-pending{background:rgba(100,116,139,0.15);color:var(--sub)}
+.pill-submitted{background:rgba(167,139,250,0.15);color:var(--purple)}
+
+/* No data */
+.no-data{text-align:center;padding:2rem;color:var(--sub);font-size:.85rem}
+
+/* Refresh */
+.refresh-info{font-size:.75rem;color:var(--sub);display:flex;align-items:center;gap:.4rem}
+.refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* Loading */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(6,16,30,0.85);
+  display:flex;align-items:center;justify-content:center;
+  z-index:100;backdrop-filter:blur(4px);
+  transition:opacity .4s;
+}
+.loading-overlay.hidden{opacity:0;pointer-events:none}
+.loading-spinner{
+  text-align:center;
+}
+.spinner{
+  width:44px;height:44px;border:3px solid var(--border);
+  border-top-color:var(--blue);border-radius:50%;
+  animation:spin 0.8s linear infinite;margin:0 auto 1rem;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:1024px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .charts-grid,.charts-grid-3{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .kpi-grid{grid-template-columns:1fr}
+  .dashboard{padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner">
+    <div class="spinner"></div>
+    <div style="color:var(--sub);font-size:.9rem">Loading Finance Dashboard...</div>
+  </div>
+</div>
+
+<header>
+  <a href="/" class="logo">Invoice<span>AI</span> <span style="font-size:.75rem;font-weight:400;color:var(--sub);margin-left:.5rem">Finance Dashboard</span></a>
+  <div class="header-right">
+    <a href="/" class="nav-link">← Home</a>
+    <a href="/erp" class="nav-link">⚡ ERP Console</a>
+    <a href="/chat" class="nav-link">💬 FinBot</a>
+    <span id="lastUpdated" style="font-size:.75rem;color:var(--sub);margin-right:.5rem"></span>
+    <div class="export-btns">
+      <button class="export-btn btn-excel" onclick="exportData('excel')">📊 Export Excel</button>
+      <button class="export-btn btn-pdf" onclick="exportData('pdf')">📄 Export PDF</button>
+    </div>
+  </div>
+</header>
+
+<div class="dashboard">
+  <!-- KPI Row -->
+  <div class="kpi-grid" id="kpiGrid">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Actionable Insights Banner -->
+  <div class="insight-banner" id="insightBanner" style="display:none">
+    <div class="insight-icon">💡</div>
+    <div class="insight-text">
+      <strong>Actionable Finance Insights</strong>
+      <div class="insight-items" id="insightItems"></div>
+    </div>
+  </div>
+
+  <!-- Row 1: Monthly Trend + Category Pie -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">
+        Monthly Spend Trend
+        <div class="refresh-info"><span class="refresh-dot"></span>Live</div>
+      </div>
+      <div class="chart-container"><canvas id="monthlyChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Spend by Category</div>
+      <div class="chart-container"><canvas id="categoryChart"></canvas></div>
+      <div class="status-legend" id="catLegend"></div>
+    </div>
+  </div>
+
+  <!-- Row 2: Top Vendors + Status + Category Bar -->
+  <div class="charts-grid-3">
+    <div class="chart-card">
+      <div class="chart-title">Top Vendors by Spend</div>
+      <div class="vendor-list" id="vendorList"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">ERP Status</div>
+      <div class="chart-container" style="height:180px"><canvas id="statusChart"></canvas></div>
+      <div class="status-legend" id="statusLegend"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Category Count</div>
+      <div class="chart-container" style="height:180px"><canvas id="catCountChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Audit Alerts + Recent -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">⚠️ Audit Required (Amount > ₹1,00,000)</div>
+      <div id="auditTable"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Recent Invoices</div>
+      <div id="recentTable"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let insightsData = null;
+
+const CHART_COLORS = ['#3B7BF5','#06B6D4','#22D3A4','#FBBF24','#F3605B','#A78BFA','#FB7185','#34D399'];
+const STATUS_COLORS = {READY:'#22D3A4',FAILED:'#F3605B',REVIEW:'#FBBF24',PENDING:'#64748B',SUBMITTED:'#A78BFA',ERROR:'#F87171'};
+
+async function loadDashboard() {
+  try {
+    const r = await fetch('/api/insights?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) throw new Error('Failed to load insights');
+    insightsData = await r.json();
+    // If no submitted invoices yet, show guidance instead of empty charts
+    if (insightsData.summary.total_invoices === 0) {
+      document.getElementById('kpiGrid').innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem">
+          <div style="font-size:3.5rem;margin-bottom:1rem">📊</div>
+          <div style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:.6rem">No submitted invoices yet</div>
+          <div style="font-size:.875rem;color:var(--sub);line-height:1.7;max-width:400px;margin:0 auto 1.25rem">
+            Dashboard insights only appear after invoices are
+            <span style="color:var(--teal);font-weight:600">submitted to ERP</span>.<br>
+            Upload your invoices, fix any validation errors, then click <em>Submit to ERP</em>.
+          </div>
+          <a href="/erp" style="display:inline-flex;align-items:center;gap:.5rem;
+             background:#1A56DB;color:#fff;padding:.65rem 1.4rem;border-radius:8px;
+             text-decoration:none;font-weight:700;font-size:.85rem">
+            ⚡ Go to ERP Console
+          </a>
+        </div>`;
+      document.getElementById('loadingOverlay').classList.add('hidden');
+      return;
+    }
+    renderDashboard(insightsData);
+    // Show last-updated timestamp
+    const ts = new Date().toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    const el = document.getElementById('lastUpdated');
+    if (el) el.textContent = `Last updated: ${ts}`;
+  } catch(e) {
+    console.error(e);
+    document.getElementById('kpiGrid').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem">
+        <div style="font-size:3.5rem;margin-bottom:1rem">📊</div>
+        <div style="font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:.6rem">No data to display yet</div>
+        <div style="font-size:.875rem;color:var(--sub);line-height:1.7;max-width:400px;margin:0 auto 1.25rem">
+          Dashboard insights only appear after invoices are
+          <span style="color:var(--teal);font-weight:600">submitted to ERP</span>.<br>
+          Upload → Validate → Submit to ERP to see your finance analytics here.
+        </div>
+        <a href="/erp" style="display:inline-flex;align-items:center;gap:.5rem;
+           background:#1A56DB;color:#fff;padding:.65rem 1.4rem;border-radius:8px;
+           text-decoration:none;font-weight:700;font-size:.85rem">
+          ⚡ Go to ERP Console
+        </a>
+      </div>`;
+  } finally {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+  }
+}
+
+function renderDashboard(data) {
+  const s = data.summary;
+
+  // KPIs
+  document.getElementById('kpiGrid').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-badge">📄</div>
+      <div class="kpi-label">Total Invoices</div>
+      <div class="kpi-value">${s.total_invoices}</div>
+      <div class="kpi-sub">${s.ready_for_erp} ready · ${s.pending_review} in review</div>
+    </div>
+    <div class="kpi-card success">
+      <div class="kpi-badge">₹</div>
+      <div class="kpi-label">Total Spend (INR)</div>
+      <div class="kpi-value">₹${formatNum(s.total_spend_inr)}</div>
+      <div class="kpi-sub">Avg ₹${formatNum(s.avg_invoice_value)} per invoice</div>
+    </div>
+    <div class="kpi-card danger">
+      <div class="kpi-badge">⚠️</div>
+      <div class="kpi-label">Audit Required</div>
+      <div class="kpi-value">${s.audit_required}</div>
+      <div class="kpi-sub">Invoices exceeding ₹1,00,000</div>
+    </div>
+    <div class="kpi-card warn">
+      <div class="kpi-badge">❌</div>
+      <div class="kpi-label">Validation Failures</div>
+      <div class="kpi-value">${s.validation_failures}</div>
+      <div class="kpi-sub">Require manual review & correction</div>
+    </div>`;
+
+  // Insights banner
+  const insights = generateInsights(data);
+  if (insights.length) {
+    document.getElementById('insightBanner').style.display = 'flex';
+    document.getElementById('insightItems').innerHTML = insights.map(i => `<div class="insight-item">${i}</div>`).join('');
+  }
+
+  // Monthly trend
+  if (data.monthly_trend?.length) {
+    renderMonthlyChart(data.monthly_trend);
+  } else {
+    document.querySelector('#monthlyChart').parentElement.innerHTML = '<div class="no-data">📭 No monthly data yet</div>';
+  }
+
+  // Category pie
+  if (data.category_breakdown?.length) {
+    renderCategoryChart(data.category_breakdown);
+  } else {
+    document.querySelector('#categoryChart').parentElement.innerHTML = '<div class="no-data">No category data</div>';
+  }
+
+  // Top vendors
+  renderVendorList(data.top_vendors || []);
+
+  // Status donut
+  renderStatusChart(data.status_distribution || {});
+
+  // Category count bar
+  renderCatCountChart(data.category_breakdown || []);
+
+  // Audit table
+  renderAuditTable(data.audit_required_list || []);
+
+  // Recent invoices
+  renderRecentTable(data.recent_invoices || []);
+}
+
+function generateInsights(data) {
+  const insights = [];
+  const s = data.summary;
+
+  if (s.audit_required > 0)
+    insights.push(`🚨 ${s.audit_required} invoice(s) exceed ₹1L — escalate to Finance Controller immediately`);
+
+  if (s.validation_failures > 0)
+    insights.push(`⚠️ ${s.validation_failures} invoice(s) failed validation — review and correct before ERP submission`);
+
+  const cats = data.category_breakdown || [];
+  if (cats.length > 0) {
+    const top = cats[0];
+    insights.push(`📊 ${top.category} is the highest spend category at ₹${formatNum(top.total)} (${top.percentage}% of total)`);
+  }
+
+  const vendors = data.top_vendors || [];
+  if (vendors.length > 0) {
+    insights.push(`🏢 Top vendor "${vendors[0].vendor}" accounts for ₹${formatNum(vendors[0].total)} in spend`);
+  }
+
+  if (s.pending_review > 0)
+    insights.push(`⏳ ${s.pending_review} invoice(s) pending review — action needed to avoid payment delays`);
+
+  return insights.slice(0, 4);
+}
+
+function renderMonthlyChart(monthlyData) {
+  const ctx = document.getElementById('monthlyChart').getContext('2d');
+  new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: monthlyData.map(m => m.month),
+      datasets:[{
+        label:'Total Spend (INR)',
+        data: monthlyData.map(m => m.total),
+        borderColor:'#3B7BF5',
+        backgroundColor:'rgba(59,123,245,0.1)',
+        borderWidth:2,fill:true,tension:0.4,
+        pointBackgroundColor:'#3B7BF5',pointRadius:4,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`₹${formatNum(v.parsed.y)}`}}},
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7B9BC7',font:{size:11}}},
+        y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#7B9BC7',font:{size:11},callback:v=>`₹${formatNum(v)}`}}
+      }
+    }
+  });
+}
+
+function renderCategoryChart(cats) {
+  const ctx = document.getElementById('categoryChart').getContext('2d');
+  new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: cats.map(c => c.category),
+      datasets:[{data:cats.map(c=>c.total),backgroundColor:CHART_COLORS,borderWidth:2,borderColor:'#0C1829'}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:v=>`${v.label}: ₹${formatNum(v.raw)} (${cats[v.dataIndex]?.percentage}%)`}}}
+    }
+  });
+  // Legend
+  document.getElementById('catLegend').innerHTML = cats.map((c,i) => `
+    <div class="leg-item">
+      <div class="leg-dot" style="background:${CHART_COLORS[i%CHART_COLORS.length]}"></div>
+      <span>${c.category}</span>
+    </div>`).join('');
+}
+
+function renderVendorList(vendors) {
+  const maxAmt = vendors[0]?.total || 1;
+  document.getElementById('vendorList').innerHTML = vendors.length
+    ? vendors.map((v,i) => `
+      <div class="vendor-row">
+        <div class="v-rank">${i+1}</div>
+        <div class="v-name" title="${v.vendor}">${v.vendor}</div>
+        <div class="v-bar-wrap"><div class="v-bar" style="width:${Math.round(v.total/maxAmt*100)}%"></div></div>
+        <div class="v-amount">₹${formatNum(v.total)}</div>
+      </div>`).join('')
+    : '<div class="no-data">No vendor data</div>';
+}
+
+function renderStatusChart(dist) {
+  const labels = Object.keys(dist);
+  const values = Object.values(dist);
+  const colors = labels.map(l => STATUS_COLORS[l] || '#64748B');
+  if (!labels.length) { document.getElementById('statusChart').parentElement.innerHTML='<div class="no-data">No data</div>'; return; }
+
+  const ctx = document.getElementById('statusChart').getContext('2d');
+  new Chart(ctx, {
+    type:'doughnut',
+    data:{labels,datasets:[{data:values,backgroundColor:colors,borderWidth:2,borderColor:'#0C1829'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('statusLegend').innerHTML = labels.map((l,i) => `
+    <div class="leg-item"><div class="leg-dot" style="background:${colors[i]}"></div><span>${l}: ${values[i]}</span></div>`).join('');
+}
+
+function renderCatCountChart(cats) {
+  if (!cats.length) { document.getElementById('catCountChart').parentElement.innerHTML='<div class="no-data">No data</div>'; return; }
+  const ctx = document.getElementById('catCountChart').getContext('2d');
+  new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels:cats.map(c=>c.category),
+      datasets:[{data:cats.map(c=>c.count),backgroundColor:CHART_COLORS,borderRadius:4}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#7B9BC7',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7B9BC7',font:{size:10},precision:0}}
+      }
+    }
+  });
+}
+
+function renderAuditTable(items) {
+  const el = document.getElementById('auditTable');
+  if (!items.length) { el.innerHTML='<div class="no-data">✅ No invoices require audit</div>'; return; }
+  el.innerHTML = `
+    <table class="data-table">
+      <tr><th>Invoice ID</th><th>Vendor</th><th>Category</th><th>Amount</th></tr>
+      ${items.map(a => `
+        <tr>
+          <td style="font-family:var(--mono);font-size:.75rem;color:var(--teal)">${a.invoice_id||'—'}</td>
+          <td>${a.vendor||'—'}</td>
+          <td>${a.category||'—'}</td>
+          <td class="amt-cell amt-high">₹${formatNum(a.amount)}</td>
+        </tr>`).join('')}
+    </table>`;
+}
+
+function renderRecentTable(items) {
+  const el = document.getElementById('recentTable');
+  if (!items.length) { el.innerHTML='<div class="no-data">No invoices processed yet</div>'; return; }
+  const pillClass = s => ({READY:'pill-ready',FAILED:'pill-failed',REVIEW:'pill-review',SUBMITTED:'pill-submitted'}[s]||'pill-pending');
+  el.innerHTML = `
+    <table class="data-table">
+      <tr><th>Invoice</th><th>Vendor</th><th>Amount</th><th>Status</th></tr>
+      ${items.map(i => `
+        <tr>
+          <td style="font-family:var(--mono);font-size:.73rem;color:var(--teal)">${i.invoice_id||'—'}</td>
+          <td style="font-size:.8rem">${(i.vendor||'—').substring(0,20)}</td>
+          <td class="amt-cell" style="font-size:.78rem">₹${formatNum(i.amount||0)}</td>
+          <td><span class="status-pill ${pillClass(i.status)}">${i.status||'PENDING'}</span></td>
+        </tr>`).join('')}
+    </table>`;
+}
+
+function formatNum(n) {
+  const num = parseFloat(n)||0;
+  if (num >= 10000000) return (num/10000000).toFixed(1)+'Cr';
+  if (num >= 100000) return (num/100000).toFixed(1)+'L';
+  if (num >= 1000) return (num/1000).toFixed(1)+'K';
+  return num.toFixed(0);
+}
+
+async function exportData(fmt) {
+  try {
+    showMsg(`⏳ Generating ${fmt.toUpperCase()} export...`);
+    const r = await fetch(`/api/export/${fmt}`);
+    if (!r.ok) throw new Error(await r.text());
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `InvoiceAI_Report.${fmt === 'excel' ? 'xlsx' : 'pdf'}`;
+    a.click(); URL.revokeObjectURL(url);
+    showMsg(`✅ ${fmt.toUpperCase()} downloaded!`);
+  } catch(e) {
+    showMsg(`❌ Export failed: ${e.message}`);
+  }
+}
+
+let msgTimer;
+function showMsg(msg) {
+  // Simple message via console for now; a toast could be added
+  console.log(msg);
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:rgba(59,123,245,0.9);color:#fff;padding:.8rem 1.25rem;border-radius:8px;font-size:.85rem;font-weight:600;z-index:9999;backdrop-filter:blur(8px)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => el.remove(), 3500);
+}
+
+loadDashboard();
+setInterval(loadDashboard, 30000); // auto-refresh every 30s
+</script>
+</body>
+</html>

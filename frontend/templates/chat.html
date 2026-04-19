@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceAI — FinBot Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080F1E;--surface:#0D1625;--surface2:#121E30;
+  --border:#1B2D42;--blue:#4F8EF7;--teal:#22D3EE;
+  --green:#34D399;--amber:#FCD34D;--red:#F87171;
+  --text:#EEF2FF;--sub:#8BA8C8;--mono:'Fira Code',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* Header */
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.8rem 2rem;background:var(--surface);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.logo{font-weight:700;font-size:1.1rem;color:#fff;text-decoration:none}
+.logo span{color:var(--teal)}
+.header-nav{display:flex;gap:.75rem}
+.nav-btn{color:var(--sub);text-decoration:none;font-size:.8rem;padding:.4rem .8rem;border-radius:6px;transition:all .2s}
+.nav-btn:hover{color:var(--text);background:var(--surface2)}
+.bot-status{display:flex;align-items:center;gap:.5rem;font-size:.8rem;color:var(--green)}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(1.3)}}
+
+/* Layout */
+.chat-layout{display:flex;flex:1;overflow:hidden}
+
+/* Sidebar */
+.sidebar{
+  width:280px;flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+.sidebar-section{padding:1rem;border-bottom:1px solid var(--border)}
+.sidebar-title{
+  font-size:.68rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.1em;color:var(--sub);margin-bottom:.75rem;
+}
+.quick-btn{
+  display:flex;align-items:flex-start;gap:.6rem;
+  padding:.7rem .9rem;border-radius:8px;margin-bottom:.4rem;
+  background:transparent;border:1px solid var(--border);
+  color:var(--text);cursor:pointer;text-align:left;font-size:.8rem;
+  transition:all .2s;line-height:1.4;width:100%;font-family:'Outfit',sans-serif;
+}
+.quick-btn:hover{background:rgba(79,142,247,0.08);border-color:rgba(79,142,247,0.3);color:var(--blue)}
+.quick-btn .q-icon{font-size:1rem;flex-shrink:0;margin-top:.05rem}
+
+.scope-info{
+  background:rgba(252,211,77,0.06);border:1px solid rgba(252,211,77,0.2);
+  border-radius:8px;padding:.9rem;
+  font-size:.775rem;color:rgba(252,211,77,0.8);line-height:1.5;
+}
+.scope-info strong{display:block;margin-bottom:.3rem;color:var(--amber)}
+.scope-list{list-style:none;display:flex;flex-direction:column;gap:.2rem}
+.scope-list li::before{content:'✓ ';color:var(--green)}
+
+/* Chat area */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.messages{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem}
+
+/* Message bubbles */
+.msg{display:flex;gap:.75rem;align-items:flex-start;max-width:100%}
+.msg.user{flex-direction:row-reverse}
+.msg-avatar{
+  width:34px;height:34px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;
+}
+.msg.bot .msg-avatar{background:linear-gradient(135deg,rgba(79,142,247,0.3),rgba(34,211,238,0.2));border:1px solid rgba(79,142,247,0.3)}
+.msg.user .msg-avatar{background:rgba(255,255,255,0.08);border:1px solid var(--border)}
+.msg-content{max-width:72%}
+.msg-bubble{
+  padding:.9rem 1.1rem;border-radius:12px;font-size:.875rem;line-height:1.65;
+  word-break:break-word;
+}
+.msg.bot .msg-bubble{
+  background:var(--surface2);border:1px solid var(--border);
+  border-top-left-radius:4px;
+}
+.msg.user .msg-bubble{
+  background:linear-gradient(135deg,rgba(79,142,247,0.2),rgba(34,211,238,0.1));
+  border:1px solid rgba(79,142,247,0.25);
+  border-top-right-radius:4px;text-align:right;
+}
+.msg-time{font-size:.68rem;color:var(--sub);margin-top:.3rem;padding:0 .2rem}
+.msg.user .msg-time{text-align:right}
+
+/* Typing indicator */
+.typing-indicator{display:flex;align-items:center;gap:.35rem;padding:.4rem 0}
+.typing-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--sub);
+  animation:bounce 1.4s infinite;
+}
+.typing-dot:nth-child(2){animation-delay:.2s}
+.typing-dot:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+/* Input area */
+.input-area{
+  padding:1rem 1.5rem;background:var(--surface);
+  border-top:1px solid var(--border);flex-shrink:0;
+}
+.input-wrap{
+  display:flex;gap:.75rem;align-items:flex-end;
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:12px;padding:.5rem .5rem .5rem 1rem;
+  transition:border-color .2s;
+}
+.input-wrap:focus-within{border-color:rgba(79,142,247,0.5)}
+.chat-input{
+  flex:1;background:none;border:none;color:var(--text);
+  font-family:'Outfit',sans-serif;font-size:.9rem;
+  outline:none;resize:none;max-height:120px;min-height:24px;
+  line-height:1.5;padding:.25rem 0;
+}
+.chat-input::placeholder{color:var(--sub)}
+.send-btn{
+  width:38px;height:38px;border-radius:8px;
+  background:linear-gradient(135deg,var(--blue),var(--teal));
+  border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:1rem;transition:all .2s;flex-shrink:0;
+}
+.send-btn:hover{transform:scale(1.05)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* Refs */
+.msg-refs{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem}
+.ref-tag{
+  padding:.2rem .55rem;border-radius:4px;font-size:.7rem;
+  background:rgba(34,211,238,0.1);color:var(--teal);border:1px solid rgba(34,211,238,0.2);
+  font-family:var(--mono);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Welcome state */
+.welcome{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:2rem;
+}
+.welcome-logo{font-size:3.5rem;margin-bottom:1.25rem}
+.welcome h2{font-size:1.4rem;font-weight:700;margin-bottom:.5rem}
+.welcome p{color:var(--sub);font-size:.9rem;max-width:420px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="/" class="logo">Invoice<span>AI</span> · FinBot</a>
+  <div class="header-nav">
+    <a href="/" class="nav-btn">← Home</a>
+    <a href="/erp" class="nav-btn">⚡ ERP</a>
+    <a href="/dashboard" class="nav-btn">📊 Dashboard</a>
+  </div>
+  <div class="bot-status"><div class="status-dot"></div>FinBot Online</div>
+</header>
+
+<div class="chat-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">Quick Questions</div>
+      <button class="quick-btn" onclick="sendQuick('What invoices are pending review?')"><span class="q-icon">⏳</span>Show pending review invoices</button>
+      <button class="quick-btn" onclick="sendQuick('Which invoices require audit approval?')"><span class="q-icon">⚠️</span>Audit-required invoices</button>
+      <button class="quick-btn" onclick="sendQuick('What is the total spend across all categories?')"><span class="q-icon">💰</span>Total spend summary</button>
+      <button class="quick-btn" onclick="sendQuick('Which invoices failed validation?')"><span class="q-icon">❌</span>Failed validation list</button>
+      <button class="quick-btn" onclick="sendQuick('What are the standard GST rates for HR consulting services in India?')"><span class="q-icon">📋</span>GST rates for services</button>
+      <button class="quick-btn" onclick="sendQuick('Explain the invoice audit process for amounts over 1 lakh')"><span class="q-icon">🔍</span>Audit process guide</button>
+      <button class="quick-btn" onclick="sendQuick('What documents are needed for ERP submission?')"><span class="q-icon">📂</span>ERP submission checklist</button>
+    </div>
+    <div class="sidebar-section" style="flex:1">
+      <div class="sidebar-title">FinBot Scope</div>
+      <div class="scope-info">
+        <strong>🎯 I can help with:</strong>
+        <ul class="scope-list">
+          <li>Invoice status & validation</li>
+          <li>GST & tax compliance (India)</li>
+          <li>ERP submission workflow</li>
+          <li>Accounts payable processes</li>
+          <li>Vendor management</li>
+          <li>Budget & spend analysis</li>
+          <li>Audit procedures</li>
+        </ul>
+        <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(252,211,77,0.2);font-size:.72rem;color:rgba(252,211,77,0.6)">
+          ⚠️ Out-of-scope queries will be politely declined.
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <button class="quick-btn" onclick="clearChat()" style="color:var(--red);border-color:rgba(248,113,113,0.2)">
+        <span class="q-icon">🗑️</span>Clear conversation
+      </button>
+    </div>
+  </aside>
+
+  <!-- Chat area -->
+  <div class="chat-area">
+    <div class="messages" id="messages">
+      <div class="welcome" id="welcomeScreen">
+        <div class="welcome-logo">🤖</div>
+        <h2>Hi, I'm FinBot!</h2>
+        <p>Your AI assistant for back-office invoice processing and finance operations. Ask me about invoices, GST, payment workflows, or compliance — I'm here to help.</p>
+      </div>
+    </div>
+
+    <div class="input-area">
+      <div class="input-wrap">
+        <textarea class="chat-input" id="chatInput" rows="1"
+          placeholder="Ask about invoices, GST, payments, audit procedures..."
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" title="Send">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let chatHistory = [];
+const sessionId = 'session-' + Date.now();
+let isTyping = false;
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg || isTyping) return;
+
+  // Remove welcome screen
+  const welcome = document.getElementById('welcomeScreen');
+  if (welcome) welcome.remove();
+
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+  isTyping = true;
+
+  appendMessage('user', msg);
+  chatHistory.push({ role: 'user', content: msg });
+
+  // Typing indicator
+  const typingId = appendTyping();
+
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, session_id: sessionId, history: chatHistory.slice(-8) })
+    });
+
+    // Always parse JSON — errors are now returned as 200 with error detail in response text
+    const data = await r.json();
+    removeTyping(typingId);
+
+    const botMsg = data.response || '❌ No response received.';
+    appendMessage('bot', botMsg, data.sources || []);
+    chatHistory.push({ role: 'assistant', content: botMsg });
+
+  } catch (e) {
+    removeTyping(typingId);
+    appendMessage('bot', '❌ Could not reach the server. Please ensure the backend is running and ANTHROPIC_API_KEY is set.');
+  } finally {
+    document.getElementById('sendBtn').disabled = false;
+    isTyping = false;
+  }
+}
+
+function appendMessage(role, text, refs=[]) {
+  const container = document.getElementById('messages');
+  const time = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  const el = document.createElement('div');
+  el.className = `msg ${role}`;
+
+  const avatar = role === 'bot' ? '🤖' : '👤';
+  const refsHtml = refs.length ? `<div class="msg-refs">${refs.map(r=>`<span class="ref-tag">📄 ${r}</span>`).join('')}</div>` : '';
+
+  el.innerHTML = `
+    <div class="msg-avatar">${avatar}</div>
+    <div class="msg-content">
+      <div class="msg-bubble">${escHtml(text).replace(/\n/g,'<br>')}</div>
+      ${refsHtml}
+      <div class="msg-time">${time}</div>
+    </div>`;
+
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return el;
+}
+
+function appendTyping() {
+  const container = document.getElementById('messages');
+  const id = 'typing-' + Date.now();
+  const el = document.createElement('div');
+  el.className = 'msg bot'; el.id = id;
+  el.innerHTML = `
+    <div class="msg-avatar">🤖</div>
+    <div class="msg-content">
+      <div class="msg-bubble">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+        </div>
+      </div>
+    </div>`;
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function removeTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function sendQuick(msg) {
+  document.getElementById('chatInput').value = msg;
+  sendMessage();
+}
+
+function clearChat() {
+  chatHistory = [];
+  const container = document.getElementById('messages');
+  container.innerHTML = `
+    <div class="welcome" id="welcomeScreen">
+      <div class="welcome-logo">🤖</div>
+      <h2>Conversation cleared!</h2>
+      <p>Start a new conversation about invoices, compliance, or back-office operations.</p>
+    </div>`;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
